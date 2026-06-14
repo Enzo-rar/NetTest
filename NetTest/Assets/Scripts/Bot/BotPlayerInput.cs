@@ -40,7 +40,7 @@ public class BotPlayerInput : MonoBehaviour, IPlayerInputProvider
 
         else if (cycle >= 5.0f && cycle <= 5.8f)
         {
-            /
+            
             currentInput.Look = new Vector2(fuerzaDeGiro, 0);
         }
 
