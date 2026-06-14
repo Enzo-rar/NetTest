@@ -1,0 +1,10 @@
+Timestamp,Libreria,Tick,Latencia_ms,PacketLoss,ClientID,Host_X,Host_Y,Host_Z,Client_X,Client_Y,Client_Z,Distancia_Desincronizacion,Client_Hit_Registrado,Host_Hit_Registrado
+9.082,Base_Offline,100,0,0,Player_2,0.000,0.000,0.000,0.000,0.000,1.000,1.000,,
+10.226,Base_Offline,100,0,0,Player_2,0.000,0.000,0.000,0.000,0.000,1.000,1.000,,
+12.136,Base_Offline,100,0,0,Player_2,0.000,0.000,0.000,0.000,0.000,1.000,1.000,,
+13.290,Base_Offline,100,0,0,Player_2,0.000,0.000,0.000,0.000,0.000,1.000,1.000,,
+13.738,Base_Offline,100,0,0,Player_2,0.000,0.000,0.000,0.000,0.000,1.000,1.000,,
+15.052,Base_Offline,100,0,0,Player_2,0.000,0.000,0.000,0.000,0.000,1.000,1.000,,
+15.258,Base_Offline,100,0,0,Player_2,0.000,0.000,0.000,0.000,0.000,1.000,1.000,,
+15.482,Base_Offline,100,0,0,Player_2,0.000,0.000,0.000,0.000,0.000,1.000,1.000,,
+17.381,Base_Offline,100,0,0,Player_2,0.000,0.000,0.000,0.000,0.000,1.000,1.000,,

@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
+
 public class PlayerMovement : MonoBehaviour
 {
     private float moveSpeed;
@@ -47,7 +48,7 @@ public class PlayerMovement : MonoBehaviour
 
     [Header("Vaulting")]
     public float vaultDuration = 0.2f;
-    public float vaultDetectionLength = 1f; // A qué distancia detecta el borde
+    public float vaultDetectionLength = 1f;
     public float vaultCooldown = 0.5f;
     private bool readyToVault = true;
     public bool isVaulting = false;
@@ -72,12 +73,25 @@ public class PlayerMovement : MonoBehaviour
         sliding
     }
 
+    
+    private IPlayerInputProvider inputProvider;
+    private bool isCrouchHeld;
+    private bool isSprintHeld;
+
+    
+    private bool wasJumping;
+    private bool wasCrouching;
+
     void Start()
     {
         rb = GetComponent<Rigidbody>();
         rb.freezeRotation = true;
         readyToJump = true;
         startYScale = transform.localScale.y;
+
+        inputProvider = GetComponentInParent<IPlayerInputProvider>();
+
+
     }
 
     void Update()
@@ -87,20 +101,22 @@ public class PlayerMovement : MonoBehaviour
         isGrounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, whatIsGround);
 
         if (state == MovementState.walking || state == MovementState.crouching || state == MovementState.sprinting)
-        {
             rb.linearDamping = groundDrag;
-        }
-        else if (state == MovementState.sliding) rb.linearDamping = 1;
-        else rb.linearDamping = 0;
-        
+        else if (state == MovementState.sliding)
+            rb.linearDamping = 1;
+        else
+            rb.linearDamping = 0;
+
         MyInput();
         SpeedControl();
         StateHandler();
         CheckVault();
-        
-        Debug.Log("Speed: " + rb.linearVelocity.magnitude);
 
-        
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            CSVMetricsLogger.Instance.LogDesincronizacionMovimiento(100, "Player_2", Vector3.zero, new Vector3(0, 0, 1));
+            Debug.Log("Dato guardado de prueba.");
+        }
     }
 
     private void FixedUpdate()
@@ -110,56 +126,73 @@ public class PlayerMovement : MonoBehaviour
 
     private void MyInput()
     {
-        hInput = Input.GetAxisRaw("Horizontal");
-        vInput = Input.GetAxisRaw("Vertical");
+        if (inputProvider == null) return;
 
-        if (Input.GetKey(KeyCode.Space) && readyToJump && isGrounded)
+        
+        PlayerInputData input = inputProvider.GetInput();
+
+        hInput = input.Move.x;
+        vInput = input.Move.y;
+        isSprintHeld = input.Sprint;
+
+        
+        if (input.Jump && !wasJumping) TryJump();
+        wasJumping = input.Jump;
+
+        
+        isCrouchHeld = input.Crouch;
+        if (isCrouchHeld && !wasCrouching) StartCrouch();
+        else if (!isCrouchHeld && wasCrouching) StopCrouch();
+        wasCrouching = isCrouchHeld;
+    }
+
+
+    private void TryJump()
+    {
+        if (readyToJump && isGrounded)
         {
             readyToJump = false;
             Jump();
             Invoke(nameof(ResetJump), jumpCooldown);
         }
+    }
 
-        if (Input.GetKeyDown(KeyCode.LeftControl))
-        {
-            transform.localScale = new Vector3(transform.localScale.x, crouchYScale, transform.localScale.z);
-            transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y - 0.5f, transform.localPosition.z);
-            playerHeight = 1;
-        }
+    private void StartCrouch()
+    {
+        transform.localScale = new Vector3(transform.localScale.x, crouchYScale, transform.localScale.z);
+        transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y - 0.5f, transform.localPosition.z);
+        playerHeight = 1;
+    }
 
-        if(Input.GetKeyUp(KeyCode.LeftControl))
-        {
-            transform.localScale = new Vector3(transform.localScale.x, startYScale, transform.localScale.z);
-            transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y + 0.5f, transform.localPosition.z);
-            playerHeight = 2;
-            if (isSliding)
-            {
-                slideEnd();
-            }
-        }
+    private void StopCrouch()
+    {
+        transform.localScale = new Vector3(transform.localScale.x, startYScale, transform.localScale.z);
+        transform.localPosition = new Vector3(transform.localPosition.x, transform.localPosition.y + 0.5f, transform.localPosition.z);
+        playerHeight = 2;
+        if (isSliding) slideEnd();
     }
 
     private void StateHandler()
     {
         Vector3 flatVel = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
-        if (Input.GetKey(KeyCode.LeftControl) && flatVel.magnitude < slideThreshold)
+        if (isCrouchHeld && flatVel.magnitude < slideThreshold)
         {
             state = MovementState.crouching;
             moveSpeed = crouchSpeed;
             maxSpeed = maxCrouchSpeed;
         }
-        else if (Input.GetKey(KeyCode.LeftControl) && flatVel.magnitude >= slideThreshold && isGrounded)
+        else if (isCrouchHeld && flatVel.magnitude >= slideThreshold && isGrounded)
         {
             state = MovementState.sliding;
             slideStart();
         }
-        else if (isGrounded && Input.GetKey(KeyCode.LeftShift) && !Input.GetKey(KeyCode.LeftControl))
+        else if (isGrounded && isSprintHeld && !isCrouchHeld)
         {
             state = MovementState.sprinting;
             moveSpeed = sprintSpeed;
             maxSpeed = maxSprintSpeed;
         }
-        else if (isGrounded && !Input.GetKey(KeyCode.LeftControl))
+        else if (isGrounded && !isCrouchHeld)
         {
             state = MovementState.walking;
             moveSpeed = walkSpeed;
@@ -191,26 +224,22 @@ public class PlayerMovement : MonoBehaviour
         }
         else if (!isGrounded)
         {
-            // 1. Aislamos la velocidad horizontal actual y calculamos cuánta velocidad llevamos (momentum).
+            
             Vector3 flatVel = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
             float currentSpeed = flatVel.magnitude;
 
             Vector3 wishDir = moveDirection.normalized;
 
-            // 2. Solo rotamos la velocidad si el jugador está tocando las teclas de movimiento (WASD).
+           
             if (wishDir.magnitude > 0)
             {
-                // 3. Giramos la dirección actual hacia la dirección deseada.
-                // Tu variable 'airMultiplier' ahora actuará como la "velocidad de giro" en el aire.
-                // Te recomiendo valores entre 5 y 15 para giros muy bruscos.
+                
                 Vector3 newDirection = Vector3.RotateTowards(flatVel.normalized, wishDir, airMultiplier * Time.fixedDeltaTime, 0f).normalized;
 
-                // 4. Aplicamos la nueva dirección multiplicada por la velocidad que ya teníamos.
-                // ¡Esto es lo que conserva el 100% de tu momentum al girar 180 grados!
+                
                 rb.linearVelocity = new Vector3(newDirection.x * currentSpeed, rb.linearVelocity.y, newDirection.z * currentSpeed);
 
-                // 5. (Opcional) Si saltas desde cero y vas muy lento, te permitimos acelerar un poco 
-                // hasta tu moveSpeed normal para que el salto no se sienta inútil.
+               
                 if (currentSpeed < moveSpeed)
                 {
                     rb.AddForce(wishDir * moveSpeed * 5f, ForceMode.Force);
@@ -295,21 +324,21 @@ public class PlayerMovement : MonoBehaviour
         if (isGrounded || !readyToVault || isVaulting) return;
 
         Vector3 lowerRayPos = transform.position;
-        // Lanzamos el rayo superior ligeramente por debajo de la altura máxima para no engancharnos en techos bajos
+        
         Vector3 upperRayPos = transform.position + Vector3.up * (playerHeight * 0.5f - 0.1f);
 
         bool lowerHit = Physics.Raycast(lowerRayPos, orientation.forward, vaultDetectionLength, whatIsGround);
         bool upperHit = Physics.Raycast(upperRayPos, orientation.forward, vaultDetectionLength, whatIsGround);
 
-        // Si hay una pared delante, pero espacio libre a la altura de la cabeza...
+        
         if (lowerHit && !upperHit)
         {
-            // 3º Rayo: Se adelanta hacia el hueco libre y mira hacia abajo para encontrar exactamente dónde está el suelo
+            
             Vector3 downRayStart = upperRayPos + (orientation.forward * vaultDetectionLength);
 
             if (Physics.Raycast(downRayStart, Vector3.down, out RaycastHit downHit, playerHeight, whatIsGround))
             {
-                // Iniciar la escalada calculada
+                
                 StartCoroutine(PerformVault(downHit.point));
             }
         }
@@ -320,30 +349,29 @@ public class PlayerMovement : MonoBehaviour
         isVaulting = true;
         readyToVault = false;
 
-        // 1. Apagamos las físicas del Rigidbody para evitar atascos
+        
         rb.isKinematic = true;
 
         Vector3 startPos = transform.position;
 
-        // 2. Calculamos dónde debe quedar nuestro cuerpo:
-        // La altura del suelo que detectó + la mitad de nuestra altura + un pequeño empujoncito hacia adelante para entrar en la plataforma
+        
         Vector3 targetPos = targetLedgeFloor + Vector3.up * (playerHeight * 0.5f + 0.1f) + orientation.forward * 0.6f;
 
         float timeElapsed = 0f;
 
-        // 3. Interpolación (Lerp) para subir suavamente frame a frame
+       
         while (timeElapsed < vaultDuration)
         {
             transform.position = Vector3.Lerp(startPos, targetPos, timeElapsed / vaultDuration);
             timeElapsed += Time.deltaTime;
 
-            yield return null; // Espera al siguiente frame
+            yield return null; 
         }
 
-        // Aseguramos de que terminamos exactamente en el punto deseado
+        
         transform.position = targetPos;
 
-        // 4. Encendemos de nuevo las físicas y devolvemos el control
+        
         rb.isKinematic = false;
         isVaulting = false;
 
