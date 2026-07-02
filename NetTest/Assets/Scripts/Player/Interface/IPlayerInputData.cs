@@ -1,5 +1,7 @@
 using UnityEngine;
+using System;
 
+[Serializable]
 public struct PlayerInputData
 {
     public Vector2 Move;
@@ -7,6 +9,8 @@ public struct PlayerInputData
     public bool Jump;
     public bool Crouch;
     public bool Sprint;
+    public bool Fire;
+    public bool AltFire;
 }
 
 public interface IPlayerInputProvider

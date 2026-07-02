@@ -25,6 +25,9 @@ public class LocalPlayerInput : MonoBehaviour, IPlayerInputProvider
         currentInput.Crouch = controls.Player.Crouch.IsPressed();
         currentInput.Sprint = controls.Player.Sprint.IsPressed();
 
+        currentInput.Fire = Mouse.current.leftButton.isPressed;
+        currentInput.AltFire = Mouse.current.rightButton.wasPressedThisFrame;
+
         return currentInput;
     }
 }
