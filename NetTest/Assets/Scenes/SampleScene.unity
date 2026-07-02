@@ -119,6 +119,11 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!4 &289615518 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7088389248022278773, guid: f8d1446d5ec134e49a1ddd1f04f93179, type: 3}
+  m_PrefabInstance: {fileID: 420300937}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -1944,11 +1949,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f8d1446d5ec134e49a1ddd1f04f93179, type: 3}
---- !u!4 &1156180653 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 7241143497963102455, guid: f8d1446d5ec134e49a1ddd1f04f93179, type: 3}
-  m_PrefabInstance: {fileID: 420300937}
-  m_PrefabAsset: {fileID: 0}
 --- !u!43 &1377756312
 Mesh:
   m_ObjectHideFlags: 0
@@ -3030,7 +3030,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac4e2e26d2d78c54caacbe329ccac5e0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SmartFloor
-  targetPlayer: {fileID: 1156180653}
+  targetPlayer: {fileID: 289615518}
 --- !u!1 &1629828875
 GameObject:
   m_ObjectHideFlags: 0
