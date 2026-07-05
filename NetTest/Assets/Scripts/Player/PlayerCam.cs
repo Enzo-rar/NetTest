@@ -28,6 +28,10 @@ public class PlayerCam : MonoBehaviour
 
         inputProvider = GetComponentInParent<IPlayerInputProvider>();
 
+        Vector3 rot = transform.localRotation.eulerAngles;
+        yRotation = rot.y;
+        xRotation = rot.x;
+
     }
 
     void Update()

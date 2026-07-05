@@ -1,12 +1,14 @@
 using UnityEngine;
 using System.Collections;
+using Fusion;
 
-
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovement : NetworkBehaviour
 {
     private float moveSpeed;
     private float maxSpeed;
-    
+
+    [Networked] public Vector3 PosicionRealServidor { get; set; }
+
     [Header("Movement")]
     public float walkSpeed;
     public float sprintSpeed;
@@ -112,16 +114,17 @@ public class PlayerMovement : MonoBehaviour
         StateHandler();
         CheckVault();
 
-        if (Input.GetKeyDown(KeyCode.P))
-        {
-            CSVMetricsLogger.Instance.LogDesincronizacionMovimiento(100, "Player_2", Vector3.zero, new Vector3(0, 0, 1));
-            Debug.Log("Dato guardado de prueba.");
-        }
     }
 
-    private void FixedUpdate()
+    public override void FixedUpdateNetwork()
     {
         MovePlayer();
+
+        if (Object.HasStateAuthority)
+        {
+            PosicionRealServidor = transform.position;
+        }
+
     }
 
     private void MyInput()
