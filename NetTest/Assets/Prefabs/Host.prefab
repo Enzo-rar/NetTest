@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 2521769249969621388}
   - component: {fileID: 4900697288982068787}
   - component: {fileID: 9197982590685890367}
-  - component: {fileID: 4210424749176885528}
   m_Layer: 0
   m_Name: PlayerCam
   m_TagString: MainCamera
@@ -139,21 +138,6 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
---- !u!114 &4210424749176885528
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 475317295299578869}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 812a9d9ef2c16d643b66199af8ae33de, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerCam
-  sensX: 20
-  sensY: 20
-  orientation: {fileID: 4336489119918385320}
 --- !u!1 &1031840956194091476
 GameObject:
   m_ObjectHideFlags: 0
@@ -194,9 +178,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7241143497963102455}
-  - component: {fileID: 3587599201869506691}
+  - component: {fileID: 710443185072908910}
+  - component: {fileID: 2654457478427815411}
   m_Layer: 0
-  m_Name: Player
+  m_Name: Host
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -219,7 +204,7 @@ Transform:
   - {fileID: 7088389248022278773}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3587599201869506691
+--- !u!114 &710443185072908910
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -228,12 +213,69 @@ MonoBehaviour:
   m_GameObject: {fileID: 2373195274315849602}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cd52356434663c54b845b810780e8ef2, type: 3}
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::RecordedPlayerInput
-  horasTotales: 24
-  prefijoArchivos: Movimiento_
-  cantidadArchivos: 10
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 3548294122
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  <InScenePlaced>k__BackingField: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
+--- !u!114 &2654457478427815411
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2373195274315849602}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e96cb6065543e43c4a752faaa1468eb1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.Components.NetworkTransform
+  ShowTopMostFoldoutHeaderGroup: 1
+  NetworkTransformExpanded: 0
+  AutoOwnerAuthorityTickOffset: 1
+  PositionInterpolationType: 0
+  RotationInterpolationType: 0
+  ScaleInterpolationType: 0
+  PositionLerpSmoothing: 1
+  PositionMaxInterpolationTime: 0.1
+  RotationLerpSmoothing: 1
+  RotationMaxInterpolationTime: 0.1
+  ScaleLerpSmoothing: 1
+  ScaleMaxInterpolationTime: 0.1
+  AuthorityMode: 0
+  TickSyncChildren: 0
+  UseUnreliableDeltas: 0
+  SyncPositionX: 1
+  SyncPositionY: 1
+  SyncPositionZ: 1
+  SyncRotAngleX: 1
+  SyncRotAngleY: 1
+  SyncRotAngleZ: 1
+  SyncScaleX: 1
+  SyncScaleY: 1
+  SyncScaleZ: 1
+  PositionThreshold: 0.001
+  RotAngleThreshold: 0.01
+  ScaleThreshold: 0.01
+  UseQuaternionSynchronization: 0
+  UseQuaternionCompression: 0
+  UseHalfFloatPrecision: 0
+  InLocalSpace: 0
+  SwitchTransformSpaceWhenParented: 0
+  Interpolate: 1
+  SlerpPosition: 0
 --- !u!1 &4117669723901032552
 GameObject:
   m_ObjectHideFlags: 0
@@ -243,9 +285,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7088389248022278773}
-  - component: {fileID: 620481889160335038}
-  - component: {fileID: 4220394479649231894}
-  - component: {fileID: 8023114113314613837}
   m_Layer: 0
   m_Name: PlayerBody
   m_TagString: Untagged
@@ -271,87 +310,6 @@ Transform:
   - {fileID: 7357677418876783970}
   m_Father: {fileID: 7241143497963102455}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!54 &620481889160335038
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4117669723901032552}
-  serializedVersion: 5
-  m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
---- !u!114 &4220394479649231894
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4117669723901032552}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fd953b18bd8ea0c47a540f850a893383, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
-  walkSpeed: 7
-  sprintSpeed: 10
-  maxWalkSpeed: 10
-  maxSprintSpeed: 12
-  crouchYScale: 0.5
-  startYScale: 1
-  crouchSpeed: 3
-  maxCrouchSpeed: 3
-  maxSlideSpeed: 14
-  slideThreshold: 8
-  slideSpeed: 2
-  slidePush: 8
-  isSliding: 0
-  jumpForce: 12
-  jumpCooldown: 0.25
-  airMultiplier: 15
-  groundDrag: 5
-  playerHeight: 2
-  whatIsGround:
-    serializedVersion: 2
-    m_Bits: 64
-  maxSlopeAngle: 40
-  vaultDuration: 0.2
-  vaultDetectionLength: 1
-  vaultCooldown: 0.5
-  isVaulting: 0
-  orientation: {fileID: 4336489119918385320}
-  state: 0
---- !u!114 &8023114113314613837
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4117669723901032552}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34b6c6ab3d1527b4a9fb1791d5888f94, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerWeaponController
-  currentWeapon: {fileID: 8964016592053955840}
-  cameraTransform: {fileID: 2566865681868922278}
 --- !u!1 &4556190999482933751
 GameObject:
   m_ObjectHideFlags: 0
@@ -691,14 +649,3 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1588398450784423550, guid: cde69bf22e67b114eb8ac4b5e1d2e57b, type: 3}
   m_PrefabInstance: {fileID: 1724990472912448131}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &8964016592053955840 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 7752647874981414787, guid: cde69bf22e67b114eb8ac4b5e1d2e57b, type: 3}
-  m_PrefabInstance: {fileID: 1724990472912448131}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 51fa4cbf69ad8bb49a11884985cea749, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Weapon
