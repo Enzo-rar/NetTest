@@ -3014,9 +3014,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44a7ebe649f7e2e41b790ea10881ea99, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DesyncAnalyzer
-  clientPlayer: {fileID: 0}
-  hostReplica: {fileID: 1629828877}
   intervaloMuestreo: 0.1
+  intervaloAgrupacionMinutos: 10
   clientID: Client_1
 --- !u!114 &1629828879
 MonoBehaviour:
@@ -4809,7 +4808,7 @@ MonoBehaviour:
   m_MaxConnectAttempts: 60
   m_DisconnectTimeoutMS: 30000
   ConnectionData:
-    Address: 127.0.0.1
+    Address: 
     Port: 7777
     WebSocketPath: /
     ServerListenAddress: 127.0.0.1
@@ -6406,11 +6405,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1964602097}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c63acbc5280bd7b49a49667a632561fe, type: 3}
+  m_Script: {fileID: 11500000, guid: 7e91beb14a9df3e469ce12e1bdbea117, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CommandReader
   currentMode: 0
-  targetIP: 127.0.0.1
+  targetIP: 18.230.150.220
 --- !u!1 &2049370918
 GameObject:
   m_ObjectHideFlags: 0

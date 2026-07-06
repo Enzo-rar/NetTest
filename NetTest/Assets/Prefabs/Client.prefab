@@ -279,6 +279,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fd953b18bd8ea0c47a540f850a893383, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
+  ShowTopMostFoldoutHeaderGroup: 1
+  PosicionRealServidor:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: {x: 0, y: 0, z: 0}
   walkSpeed: 7
   sprintSpeed: 10
   maxWalkSpeed: 10

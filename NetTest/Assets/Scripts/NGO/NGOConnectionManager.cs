@@ -1,59 +1,34 @@
 using UnityEngine;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
-using System;
 
 public class NGOConnectionManager : MonoBehaviour
 {
     void Start()
     {
-        // Si estamos en el Editor de Unity, arrancamos como Host por defecto para probar rápido
-#if UNITY_EDITOR
-        Debug.Log("<color=yellow>[NGO]</color> Modo Editor: Arrancando Host en local.");
-        NetworkManager.Singleton.StartHost();
-        return;
-#endif
-
-        // Si es una Build, leemos el .bat
-        ConectarDesdeArgumentos();
+        // Esto es lo único que hará el script: cuando empiece, configura y conecta.
+        Invoke(nameof(ConfigurarYConectar), 0.5f);
     }
 
-    private void ConectarDesdeArgumentos()
+    void ConfigurarYConectar()
     {
-        string[] args = Environment.GetCommandLineArgs();
-        bool isHost = false;
-        bool isClient = false;
-        string ipDestino = "127.0.0.1";
+        var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+        var reader = CommandReader.Instance;
 
-        for (int i = 0; i < args.Length; i++)
-        {
-            if (args[i] == "-mode" && i + 1 < args.Length)
-            {
-                if (args[i + 1] == "host") isHost = true;
-                if (args[i + 1] == "client") isClient = true;
-            }
-            if (args[i] == "-ip" && i + 1 < args.Length)
-            {
-                ipDestino = args[i + 1];
-            }
-        }
+        // Inyección directa de IP y Puerto
+        transport.ConnectionData.Address = reader.targetIP;
+        transport.ConnectionData.Port = 7777;
 
-        if (isHost)
+        if (reader.currentMode == CommandReader.StartupMode.Host)
         {
-            Debug.Log("<color=yellow>[NGO]</color> Arrancando HOST");
+            transport.ConnectionData.Address = "0.0.0.0";
             NetworkManager.Singleton.StartHost();
+            Debug.Log($"[NGO] Iniciado como HOST en 0.0.0.0:7777");
         }
-        else if (isClient)
+        else if (reader.currentMode == CommandReader.StartupMode.Client)
         {
-            Debug.Log($"<color=cyan>[NGO]</color> Arrancando CLIENTE hacia {ipDestino}");
-
-            // Le inyectamos la IP al UnityTransport antes de conectar
-            var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-            if (transport != null)
-            {
-                transport.ConnectionData.Address = ipDestino;
-            }
             NetworkManager.Singleton.StartClient();
+            Debug.Log($"[NGO] Iniciado como CLIENTE hacia {reader.targetIP}:7777");
         }
     }
 }

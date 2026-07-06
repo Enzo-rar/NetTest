@@ -1,18 +1,25 @@
 using UnityEngine;
+using Unity.Netcode;
 using System.Collections;
 
-
-public class PlayerMovement : MonoBehaviour
+public class PlayerMovement : NetworkBehaviour
 {
+    // --- VARIABLE DE RED PARA EL CSV ---
+    // Solo el servidor puede escribirla, todos pueden leerla
+    public NetworkVariable<Vector3> PosicionRealServidor = new NetworkVariable<Vector3>(
+        Vector3.zero,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server
+    );
+
     private float moveSpeed;
     private float maxSpeed;
-    
+
     [Header("Movement")]
     public float walkSpeed;
     public float sprintSpeed;
     public float maxWalkSpeed;
     public float maxSprintSpeed;
-
 
     [Header("Crouching")]
     public float crouchYScale;
@@ -32,7 +39,6 @@ public class PlayerMovement : MonoBehaviour
     public float jumpCooldown;
     public float airMultiplier;
     bool readyToJump;
-
 
     public float groundDrag;
 
@@ -56,29 +62,15 @@ public class PlayerMovement : MonoBehaviour
     public Transform orientation;
 
     float hInput, vInput;
-    
-
     Vector3 moveDirection;
-
     Rigidbody rb;
 
     public MovementState state;
+    public enum MovementState { walking, sprinting, air, crouching, sliding }
 
-    public enum MovementState
-    {
-        walking,
-        sprinting,
-        air,
-        crouching,
-        sliding
-    }
-
-    
     private IPlayerInputProvider inputProvider;
     private bool isCrouchHeld;
     private bool isSprintHeld;
-
-    
     private bool wasJumping;
     private bool wasCrouching;
 
@@ -88,64 +80,73 @@ public class PlayerMovement : MonoBehaviour
         rb.freezeRotation = true;
         readyToJump = true;
         startYScale = transform.localScale.y;
-
         inputProvider = GetComponentInParent<IPlayerInputProvider>();
-
-
     }
 
     void Update()
     {
-        if (isVaulting) return;
+        // 1. EL CLIENTE LEE EL JSON Y SE LO MANDA AL SERVIDOR
+        if (IsOwner && inputProvider != null && !isVaulting)
+        {
+            PlayerInputData input = inputProvider.GetInput();
+            // Le enviamos los inputs al servidor con el sufijo correcto
+            EnviarInputsServerRpc(input.Move.x, input.Move.y, input.Jump, input.Sprint, input.Crouch);
+        }
+
+        // 2. EL SERVIDOR GUARDA SU POSICIÓN REAL PARA EL CSV
+        if (IsServer)
+        {
+            PosicionRealServidor.Value = transform.position;
+        }
+    }
+
+    // --- MAGIA DE NGO: Petición del Cliente al Servidor ---
+    // El sufijo ServerRpc es OBLIGATORIO en el nombre del método
+    [ServerRpc(RequireOwnership = false)]
+    private void EnviarInputsServerRpc(float h, float v, bool jump, bool sprint, bool crouch)
+    {
+        hInput = h;
+        vInput = v;
+        isSprintHeld = sprint;
+        isCrouchHeld = crouch;
+
+        // Chivato: Si el cliente manda movimiento, el servidor lo chiva en consola
+        if (Mathf.Abs(h) > 0.1f || Mathf.Abs(v) > 0.1f || jump)
+        {
+            Debug.Log($"<color=orange>[Servidor]</color> Recibiendo inputs del cliente: V={v}, H={h}, Jump={jump}");
+        }
+
+        if (jump && !wasJumping) TryJump();
+        wasJumping = jump;
+
+        if (crouch && !wasCrouching) StartCrouch();
+        else if (!crouch && wasCrouching) StopCrouch();
+        wasCrouching = crouch;
+    }
+
+    // --- EL SERVIDOR APLICA LAS FÍSICAS ---
+    void FixedUpdate()
+    {
+        if (!IsServer || isVaulting) return; // Solo el Servidor ejecuta físicas en esta arquitectura
 
         isGrounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, whatIsGround);
 
-        if (state == MovementState.walking || state == MovementState.crouching || state == MovementState.sprinting)
+        if (this.state == MovementState.walking || this.state == MovementState.crouching || this.state == MovementState.sprinting)
             rb.linearDamping = groundDrag;
-        else if (state == MovementState.sliding)
+        else if (this.state == MovementState.sliding)
             rb.linearDamping = 1;
         else
             rb.linearDamping = 0;
 
-        MyInput();
+        MovePlayer();
         SpeedControl();
         StateHandler();
         CheckVault();
-
-        if (Input.GetKeyDown(KeyCode.P))
-        {
-            CSVMetricsLogger.Instance.LogDesincronizacionMovimiento(100, "Player_2", Vector3.zero, new Vector3(0, 0, 1));
-            Debug.Log("Dato guardado de prueba.");
-        }
     }
 
-    private void FixedUpdate()
-    {
-        MovePlayer();
-    }
-
-    private void MyInput()
-    {
-        if (inputProvider == null) return;
-
-        
-        PlayerInputData input = inputProvider.GetInput();
-
-        hInput = input.Move.x;
-        vInput = input.Move.y;
-        isSprintHeld = input.Sprint;
-
-        
-        if (input.Jump && !wasJumping) TryJump();
-        wasJumping = input.Jump;
-
-        
-        isCrouchHeld = input.Crouch;
-        if (isCrouchHeld && !wasCrouching) StartCrouch();
-        else if (!isCrouchHeld && wasCrouching) StopCrouch();
-        wasCrouching = isCrouchHeld;
-    }
-
+    // ----------------------------------------------------------------------
+    // MÉTODOS DE FÍSICAS ORIGINALES (Ejecutados solo en el Servidor)
+    // ----------------------------------------------------------------------
 
     private void TryJump()
     {
@@ -177,30 +178,30 @@ public class PlayerMovement : MonoBehaviour
         Vector3 flatVel = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
         if (isCrouchHeld && flatVel.magnitude < slideThreshold)
         {
-            state = MovementState.crouching;
+            this.state = MovementState.crouching;
             moveSpeed = crouchSpeed;
             maxSpeed = maxCrouchSpeed;
         }
         else if (isCrouchHeld && flatVel.magnitude >= slideThreshold && isGrounded)
         {
-            state = MovementState.sliding;
+            this.state = MovementState.sliding;
             slideStart();
         }
         else if (isGrounded && isSprintHeld && !isCrouchHeld)
         {
-            state = MovementState.sprinting;
+            this.state = MovementState.sprinting;
             moveSpeed = sprintSpeed;
             maxSpeed = maxSprintSpeed;
         }
         else if (isGrounded && !isCrouchHeld)
         {
-            state = MovementState.walking;
+            this.state = MovementState.walking;
             moveSpeed = walkSpeed;
             maxSpeed = maxWalkSpeed;
         }
         else
         {
-            state = MovementState.air;
+            this.state = MovementState.air;
         }
     }
 
@@ -211,45 +212,35 @@ public class PlayerMovement : MonoBehaviour
         if (OnSlope() && !exitingSlope)
         {
             rb.AddForce(GetSlopeMoveDirection() * moveSpeed * 20f, ForceMode.Force);
-
             if (rb.angularVelocity.y > 0)
             {
                 rb.AddForce(Vector3.down * 80f, ForceMode.Force);
             }
         }
-
         else if (isGrounded)
         {
             rb.AddForce(moveDirection.normalized * moveSpeed * 10f, ForceMode.Force);
         }
         else if (!isGrounded)
         {
-            
             Vector3 flatVel = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
             float currentSpeed = flatVel.magnitude;
-
             Vector3 wishDir = moveDirection.normalized;
 
-           
             if (wishDir.magnitude > 0)
             {
-                
                 Vector3 newDirection = Vector3.RotateTowards(flatVel.normalized, wishDir, airMultiplier * Time.fixedDeltaTime, 0f).normalized;
-
-                
                 rb.linearVelocity = new Vector3(newDirection.x * currentSpeed, rb.linearVelocity.y, newDirection.z * currentSpeed);
 
-               
                 if (currentSpeed < moveSpeed)
                 {
                     rb.AddForce(wishDir * moveSpeed * 5f, ForceMode.Force);
                 }
             }
         }
-
         rb.useGravity = !OnSlope();
     }
-    
+
     private void SpeedControl()
     {
         if (OnSlope() && !exitingSlope)
@@ -262,7 +253,6 @@ public class PlayerMovement : MonoBehaviour
         else
         {
             Vector3 flatVel = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
-
             if (flatVel.magnitude > maxSpeed && isGrounded)
             {
                 Vector3 limitedVel = flatVel.normalized * maxSpeed;
@@ -275,25 +265,22 @@ public class PlayerMovement : MonoBehaviour
     {
         exitingSlope = true;
         rb.linearVelocity = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
-
         rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
     }
 
     private void ResetJump()
     {
         readyToJump = true;
-
         exitingSlope = false;
     }
 
     private bool OnSlope()
     {
-        if(Physics.Raycast(transform.position, Vector3.down, out slopeHit, playerHeight * 0.5f + 0.3f))
+        if (Physics.Raycast(transform.position, Vector3.down, out slopeHit, playerHeight * 0.5f + 0.3f))
         {
             float angle = Vector3.Angle(Vector3.up, slopeHit.normal);
             return angle < maxSlopeAngle && angle != 0;
         }
-
         return false;
     }
 
@@ -324,21 +311,17 @@ public class PlayerMovement : MonoBehaviour
         if (isGrounded || !readyToVault || isVaulting) return;
 
         Vector3 lowerRayPos = transform.position;
-        
         Vector3 upperRayPos = transform.position + Vector3.up * (playerHeight * 0.5f - 0.1f);
 
         bool lowerHit = Physics.Raycast(lowerRayPos, orientation.forward, vaultDetectionLength, whatIsGround);
         bool upperHit = Physics.Raycast(upperRayPos, orientation.forward, vaultDetectionLength, whatIsGround);
 
-        
         if (lowerHit && !upperHit)
         {
-            
             Vector3 downRayStart = upperRayPos + (orientation.forward * vaultDetectionLength);
 
             if (Physics.Raycast(downRayStart, Vector3.down, out RaycastHit downHit, playerHeight, whatIsGround))
             {
-                
                 StartCoroutine(PerformVault(downHit.point));
             }
         }
@@ -348,30 +331,20 @@ public class PlayerMovement : MonoBehaviour
     {
         isVaulting = true;
         readyToVault = false;
-
-        
         rb.isKinematic = true;
 
         Vector3 startPos = transform.position;
-
-        
         Vector3 targetPos = targetLedgeFloor + Vector3.up * (playerHeight * 0.5f + 0.1f) + orientation.forward * 0.6f;
-
         float timeElapsed = 0f;
 
-       
         while (timeElapsed < vaultDuration)
         {
             transform.position = Vector3.Lerp(startPos, targetPos, timeElapsed / vaultDuration);
             timeElapsed += Time.deltaTime;
-
-            yield return null; 
+            yield return null;
         }
 
-        
         transform.position = targetPos;
-
-        
         rb.isKinematic = false;
         isVaulting = false;
 

@@ -6,12 +6,11 @@ using UnityEngine;
 public class CSVMetricsLogger : MonoBehaviour
 {
     public static CSVMetricsLogger Instance;
-
     private StreamWriter writer;
     private string filePath;
 
     [Header("Configuración del Experimento")]
-    public string libreriaActual = "Base_Offline";
+    public string libreriaActual = "Unity_NGO"; // Ya te lo dejo en NGO
     public int latenciaSimuladaMs = 0;
     public float packetLossSimulado = 0f;
 
@@ -21,70 +20,43 @@ public class CSVMetricsLogger : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            CrearArchivoCSV();
         }
         else
         {
             Destroy(gameObject);
-            return;
         }
-
-        CrearArchivoCSV();
     }
 
     private void CrearArchivoCSV()
     {
         string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
         filePath = Path.Combine(Application.dataPath, $"Metricas_{libreriaActual}_{timestamp}.csv");
+
         writer = new StreamWriter(filePath, false);
 
-
-        string header = "Timestamp,Libreria,Tick,Latencia_ms,PacketLoss,ClientID,Host_X,Host_Y,Host_Z,Client_X,Client_Y,Client_Z,Distancia_Desincronizacion,Client_Hit_Registrado,Host_Hit_Registrado";
+        // Cabecera exacta agrupada
+        string header = "Timestamp_GameTime,Libreria,Latencia_ms,PacketLoss,ClientID,Min_Dist,Max_Dist,Media_Dist,Mediana_Dist,Total_Muestras";
         writer.WriteLine(header);
         writer.Flush();
 
-        Debug.Log($"<color=cyan>[CSVLogger]</color> Archivo de métricas creado (Modo 4 Jugadores) en: {filePath}");
+        Debug.Log($"<color=cyan>[CSVLogger]</color> Archivo de métricas creado en: {filePath}");
     }
 
-    /// <summary>
-    /// Registra la diferencia de posición. Ahora requiere saber qué cliente estamos evaluando.
-    /// </summary>
-    public void LogDesincronizacionMovimiento(int tickActual, string clientID, Vector3 posHost, Vector3 posClient)
+    public void LogBloqueEstadistico(float gameTime, string clientID, float min, float max, float media, float mediana, int muestras)
     {
-        float distancia = Vector3.Distance(posHost, posClient);
+        string time = gameTime.ToString("F3", CultureInfo.InvariantCulture);
+        string sMin = min.ToString("F4", CultureInfo.InvariantCulture);
+        string sMax = max.ToString("F4", CultureInfo.InvariantCulture);
+        string sMedia = media.ToString("F4", CultureInfo.InvariantCulture);
+        string sMediana = mediana.ToString("F4", CultureInfo.InvariantCulture);
 
-        string hostX = posHost.x.ToString("F3", CultureInfo.InvariantCulture);
-        string hostY = posHost.y.ToString("F3", CultureInfo.InvariantCulture);
-        string hostZ = posHost.z.ToString("F3", CultureInfo.InvariantCulture);
+        string linea = $"{time},{libreriaActual},{latenciaSimuladaMs},{packetLossSimulado},{clientID},{sMin},{sMax},{sMedia},{sMediana},{muestras}";
 
-        string clientX = posClient.x.ToString("F3", CultureInfo.InvariantCulture);
-        string clientY = posClient.y.ToString("F3", CultureInfo.InvariantCulture);
-        string clientZ = posClient.z.ToString("F3", CultureInfo.InvariantCulture);
-
-        string dist = distancia.ToString("F3", CultureInfo.InvariantCulture);
-        string time = Time.time.ToString("F3", CultureInfo.InvariantCulture);
-
-       
-        string linea = $"{time},{libreriaActual},{tickActual},{latenciaSimuladaMs},{packetLossSimulado},{clientID},{hostX},{hostY},{hostZ},{clientX},{clientY},{clientZ},{dist},,";
-        EscribirLinea(linea);
-    }
-
-    /// <summary>
-    /// Registra los disparos, indicando qué cliente apretó el gatillo.
-    /// </summary>
-    public void LogHit(int tickActual, string shooterClientID, bool clienteAcerto, bool hostValido)
-    {
-        string time = Time.time.ToString("F3", CultureInfo.InvariantCulture);
-
-        
-        string linea = $"{time},{libreriaActual},{tickActual},{latenciaSimuladaMs},{packetLossSimulado},{shooterClientID},,,,,,,,{(clienteAcerto ? 1 : 0)},{(hostValido ? 1 : 0)}";
-        EscribirLinea(linea);
-    }
-
-    private void EscribirLinea(string linea)
-    {
         if (writer != null)
         {
             writer.WriteLine(linea);
+            writer.Flush(); // ¡CRÍTICO! Forzamos a Windows a guardarlo en disco al instante
         }
     }
 

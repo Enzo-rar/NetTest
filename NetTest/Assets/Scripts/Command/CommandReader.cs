@@ -1,3 +1,4 @@
+ï»¿
 using UnityEngine;
 using System;
 
@@ -29,12 +30,12 @@ public class CommandReader : MonoBehaviour
 
     private void LeerArgumentos()
     {
-        
+
         string[] args = Environment.GetCommandLineArgs();
 
         for (int i = 0; i < args.Length; i++)
         {
-           
+
             if (args[i] == "-mode" && i + 1 < args.Length)
             {
                 string modeArg = args[i + 1].ToLower();
@@ -42,12 +43,12 @@ public class CommandReader : MonoBehaviour
                 else if (modeArg == "client") currentMode = StartupMode.Client;
                 else if (modeArg == "server") currentMode = StartupMode.DedicatedServer;
             }
-            
+
             else if (args[i] == "-ip" && i + 1 < args.Length)
             {
                 targetIP = args[i + 1];
             }
-            
+
             else if (args[i] == "-headless")
             {
                 ActivarModoHeadless();
@@ -61,7 +62,7 @@ public class CommandReader : MonoBehaviour
     {
         Debug.Log("<color=red>[CommandReader]</color> Modo Headless detectado. Apagando sistemas no esenciales...");
 
-       
+
         QualitySettings.vSyncCount = 0;
         Application.targetFrameRate = 60;
 
@@ -69,8 +70,8 @@ public class CommandReader : MonoBehaviour
         AudioListener.pause = true;
         AudioListener.volume = 0f;
 
-        // Unity tiene un argumento nativo llamado "-batchmode" que desactiva el renderizado gráfico.
+        // Unity tiene un argumento nativo llamado "-batchmode" que desactiva el renderizado grï¿½fico.
         // Usaremos "-batchmode" nativo en AWS, pero este "-headless" sirve para apagar cosas 
-        // lógicas del juego que "-batchmode" no apaga (como el audio o UI específicas).
+        // lï¿½gicas del juego que "-batchmode" no apaga (como el audio o UI especï¿½ficas).
     }
 }
