@@ -4,31 +4,50 @@ using Unity.Netcode.Transports.UTP;
 
 public class NGOConnectionManager : MonoBehaviour
 {
+    // Esta será la IP "por defecto" si lo abres desde el editor de Unity sin el .bat
+    private const string IP_POR_DEFECTO = "18.231.36.49";
+    private const ushort PUERTO = 7777;
+
     void Start()
     {
-        // Esto es lo único que hará el script: cuando empiece, configura y conecta.
-        Invoke(nameof(ConfigurarYConectar), 0.5f);
+        Invoke(nameof(IniciarConexion), 0.5f);
     }
 
-    void ConfigurarYConectar()
+    void IniciarConexion()
     {
         var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
-        var reader = CommandReader.Instance;
 
-        // Inyección directa de IP y Puerto
-        transport.ConnectionData.Address = reader.targetIP;
-        transport.ConnectionData.Port = 7777;
-
-        if (reader.currentMode == CommandReader.StartupMode.Host)
+        // 1. Obtenemos la IP desde los argumentos (si existe), si no, usamos la por defecto
+        string ipDestino = IP_POR_DEFECTO;
+        if (CommandReader.Instance != null && CommandReader.Instance.targetIP != "127.0.0.1")
         {
-            transport.ConnectionData.Address = "0.0.0.0";
-            NetworkManager.Singleton.StartHost();
-            Debug.Log($"[NGO] Iniciado como HOST en 0.0.0.0:7777");
+            ipDestino = CommandReader.Instance.targetIP;
         }
-        else if (reader.currentMode == CommandReader.StartupMode.Client)
+
+        // 2. Configuramos el transporte con la IP dinámica
+        transport.SetConnectionData(ipDestino, PUERTO, "0.0.0.0");
+
+        if (CommandReader.Instance != null)
         {
-            NetworkManager.Singleton.StartClient();
-            Debug.Log($"[NGO] Iniciado como CLIENTE hacia {reader.targetIP}:7777");
+            switch (CommandReader.Instance.currentMode)
+            {
+                case CommandReader.StartupMode.DedicatedServer:
+                    NetworkManager.Singleton.StartServer();
+                    Debug.Log($"[NGO] ARRANCANDO COMO SERVIDOR DEDICADO EN PUERTO {PUERTO}");
+                    break;
+
+                case CommandReader.StartupMode.Host:
+                    // En modo host local, pisamos la IP para forzar localhost
+                    transport.SetConnectionData("127.0.0.1", PUERTO, "0.0.0.0");
+                    NetworkManager.Singleton.StartHost();
+                    Debug.Log($"[NGO] ARRANCANDO COMO HOST EN LOCALHOST");
+                    break;
+
+                case CommandReader.StartupMode.Client:
+                    NetworkManager.Singleton.StartClient();
+                    Debug.Log($"[NGO] ARRANCANDO COMO CLIENTE HACIA {ipDestino}:{PUERTO}");
+                    break;
+            }
         }
     }
 }

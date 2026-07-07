@@ -12,6 +12,10 @@ public class PlayerMovement : NetworkBehaviour
         NetworkVariableWritePermission.Server
     );
 
+    // Freno de red: 30 mensajes por segundo máximo
+    private float networkTickTimer = 0f;
+    private const float NETWORK_TICK_RATE = 1f / 30f;
+
     private float moveSpeed;
     private float maxSpeed;
 
@@ -88,9 +92,18 @@ public class PlayerMovement : NetworkBehaviour
         // 1. EL CLIENTE LEE EL JSON Y SE LO MANDA AL SERVIDOR
         if (IsOwner && inputProvider != null && !isVaulting)
         {
-            PlayerInputData input = inputProvider.GetInput();
-            // Le enviamos los inputs al servidor con el sufijo correcto
-            EnviarInputsServerRpc(input.Move.x, input.Move.y, input.Jump, input.Sprint, input.Crouch);
+            // El temporizador va sumando el tiempo que ha pasado (deltaTime)
+            networkTickTimer += Time.deltaTime;
+
+            // Solo enviamos si ha pasado el tiempo necesario (1/30 de segundo)
+            if (networkTickTimer >= NETWORK_TICK_RATE)
+            {
+                networkTickTimer -= NETWORK_TICK_RATE; // Reseteamos el temporizador
+
+                PlayerInputData input = inputProvider.GetInput();
+                // Le enviamos los inputs al servidor
+                EnviarInputsServerRpc(input.Move.x, input.Move.y, input.Jump, input.Sprint, input.Crouch);
+            }
         }
 
         // 2. EL SERVIDOR GUARDA SU POSICIÓN REAL PARA EL CSV
@@ -101,8 +114,8 @@ public class PlayerMovement : NetworkBehaviour
     }
 
     // --- MAGIA DE NGO: Petición del Cliente al Servidor ---
-    // El sufijo ServerRpc es OBLIGATORIO en el nombre del método
-    [ServerRpc(RequireOwnership = false)]
+    // Usamos la nueva sintaxis de [Rpc] en modo Unreliable para no saturar la red ni la memoria
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Everyone, Delivery = RpcDelivery.Unreliable)]
     private void EnviarInputsServerRpc(float h, float v, bool jump, bool sprint, bool crouch)
     {
         hInput = h;
