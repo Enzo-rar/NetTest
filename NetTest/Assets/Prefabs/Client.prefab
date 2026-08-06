@@ -240,7 +240,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cd52356434663c54b845b810780e8ef2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RecordedPlayerInput
-  horasTotales: 6
+  horasTotales: 1
   prefijoArchivos: Movimiento_
   cantidadArchivos: 10
 --- !u!114 &284413080596999243
@@ -421,7 +421,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44a7ebe649f7e2e41b790ea10881ea99, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DesyncAnalyzer
-  minutosPorIntervalo: 10
+  minutosPorIntervalo: 5
   frecuenciaMuestreo: 0.1
   clientID: Client_1
 --- !u!114 &6025445121392559438
@@ -436,7 +436,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec325090cb548684384eea42f82c2560, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FusionNetworkMetricsLogger
-  intervaloRegistro: 1
+  intervaloRegistro: 10
 --- !u!1 &4117669723901032552
 GameObject:
   m_ObjectHideFlags: 0
