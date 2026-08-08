@@ -1,12 +1,13 @@
 using UnityEngine;
+using FishNet.Object; // 1. Añadimos la librería de FishNet
 using System.Collections;
 
-
-public class PlayerMovement : MonoBehaviour
+// 2. Cambiamos MonoBehaviour por NetworkBehaviour
+public class PlayerMovement : NetworkBehaviour
 {
     private float moveSpeed;
     private float maxSpeed;
-    
+
     [Header("Movement")]
     public float walkSpeed;
     public float sprintSpeed;
@@ -56,7 +57,6 @@ public class PlayerMovement : MonoBehaviour
     public Transform orientation;
 
     float hInput, vInput;
-    
 
     Vector3 moveDirection;
 
@@ -73,14 +73,14 @@ public class PlayerMovement : MonoBehaviour
         sliding
     }
 
-    
     private IPlayerInputProvider inputProvider;
     private bool isCrouchHeld;
     private bool isSprintHeld;
 
-    
     private bool wasJumping;
     private bool wasCrouching;
+
+ 
 
     void Start()
     {
@@ -90,12 +90,13 @@ public class PlayerMovement : MonoBehaviour
         startYScale = transform.localScale.y;
 
         inputProvider = GetComponentInParent<IPlayerInputProvider>();
-
-
     }
 
     void Update()
     {
+        // 4. BLOQUEO LOCAL: Si no somos el servidor, no procesamos los inputs ni los estados
+        if (!base.IsServerInitialized) return;
+
         if (isVaulting) return;
 
         isGrounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, whatIsGround);
@@ -121,31 +122,53 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
+        // 5. BLOQUEO FÍSICO: Solo el servidor tiene derecho a aplicar fuerzas de movimiento
+        if (!base.IsServerInitialized) return;
+
         MovePlayer();
     }
+
+    // ====================================================================================
+    // A PARTIR DE AQUÍ, TODO TU CÓDIGO ORIGINAL SE MANTIENE 100% INTACTO
+    // ====================================================================================
 
     private void MyInput()
     {
         if (inputProvider == null) return;
 
-        
         PlayerInputData input = inputProvider.GetInput();
 
         hInput = input.Move.x;
         vInput = input.Move.y;
         isSprintHeld = input.Sprint;
 
-        
         if (input.Jump && !wasJumping) TryJump();
         wasJumping = input.Jump;
 
-        
         isCrouchHeld = input.Crouch;
         if (isCrouchHeld && !wasCrouching) StartCrouch();
         else if (!isCrouchHeld && wasCrouching) StopCrouch();
         wasCrouching = isCrouchHeld;
     }
 
+    // LA MARIONETA DEFINITIVA: Apaga la simulación local para que gane la Red
+    public override void OnStartNetwork()
+    {
+        base.OnStartNetwork();
+
+        // Si somos el Cliente remoto (no el Servidor)
+        if (!base.IsServerInitialized)
+        {
+            Rigidbody localRb = GetComponent<Rigidbody>();
+            if (localRb != null)
+            {
+                // Le quitamos el poder de simular físicas locales
+                localRb.isKinematic = true;
+                localRb.useGravity = false;
+                Debug.Log("<color=green>[Marioneta]</color> Físicas locales apagadas. El NetworkTransform tiene el control total.");
+            }
+        }
+    }
 
     private void TryJump()
     {
@@ -217,29 +240,22 @@ public class PlayerMovement : MonoBehaviour
                 rb.AddForce(Vector3.down * 80f, ForceMode.Force);
             }
         }
-
         else if (isGrounded)
         {
             rb.AddForce(moveDirection.normalized * moveSpeed * 10f, ForceMode.Force);
         }
         else if (!isGrounded)
         {
-            
             Vector3 flatVel = new Vector3(rb.linearVelocity.x, 0f, rb.linearVelocity.z);
             float currentSpeed = flatVel.magnitude;
 
             Vector3 wishDir = moveDirection.normalized;
 
-           
             if (wishDir.magnitude > 0)
             {
-                
                 Vector3 newDirection = Vector3.RotateTowards(flatVel.normalized, wishDir, airMultiplier * Time.fixedDeltaTime, 0f).normalized;
-
-                
                 rb.linearVelocity = new Vector3(newDirection.x * currentSpeed, rb.linearVelocity.y, newDirection.z * currentSpeed);
 
-               
                 if (currentSpeed < moveSpeed)
                 {
                     rb.AddForce(wishDir * moveSpeed * 5f, ForceMode.Force);
@@ -249,7 +265,7 @@ public class PlayerMovement : MonoBehaviour
 
         rb.useGravity = !OnSlope();
     }
-    
+
     private void SpeedControl()
     {
         if (OnSlope() && !exitingSlope)
@@ -288,7 +304,7 @@ public class PlayerMovement : MonoBehaviour
 
     private bool OnSlope()
     {
-        if(Physics.Raycast(transform.position, Vector3.down, out slopeHit, playerHeight * 0.5f + 0.3f))
+        if (Physics.Raycast(transform.position, Vector3.down, out slopeHit, playerHeight * 0.5f + 0.3f))
         {
             float angle = Vector3.Angle(Vector3.up, slopeHit.normal);
             return angle < maxSlopeAngle && angle != 0;
@@ -324,21 +340,17 @@ public class PlayerMovement : MonoBehaviour
         if (isGrounded || !readyToVault || isVaulting) return;
 
         Vector3 lowerRayPos = transform.position;
-        
         Vector3 upperRayPos = transform.position + Vector3.up * (playerHeight * 0.5f - 0.1f);
 
         bool lowerHit = Physics.Raycast(lowerRayPos, orientation.forward, vaultDetectionLength, whatIsGround);
         bool upperHit = Physics.Raycast(upperRayPos, orientation.forward, vaultDetectionLength, whatIsGround);
 
-        
         if (lowerHit && !upperHit)
         {
-            
             Vector3 downRayStart = upperRayPos + (orientation.forward * vaultDetectionLength);
 
             if (Physics.Raycast(downRayStart, Vector3.down, out RaycastHit downHit, playerHeight, whatIsGround))
             {
-                
                 StartCoroutine(PerformVault(downHit.point));
             }
         }
@@ -349,29 +361,22 @@ public class PlayerMovement : MonoBehaviour
         isVaulting = true;
         readyToVault = false;
 
-        
         rb.isKinematic = true;
 
         Vector3 startPos = transform.position;
-
-        
         Vector3 targetPos = targetLedgeFloor + Vector3.up * (playerHeight * 0.5f + 0.1f) + orientation.forward * 0.6f;
 
         float timeElapsed = 0f;
 
-       
         while (timeElapsed < vaultDuration)
         {
             transform.position = Vector3.Lerp(startPos, targetPos, timeElapsed / vaultDuration);
             timeElapsed += Time.deltaTime;
 
-            yield return null; 
+            yield return null;
         }
 
-        
         transform.position = targetPos;
-
-        
         rb.isKinematic = false;
         isVaulting = false;
 
