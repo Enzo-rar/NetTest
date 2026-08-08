@@ -11,7 +11,7 @@ public class CSVMetricsLogger : MonoBehaviour
     private string filePath;
 
     [Header("Configuración del Experimento")]
-    public string libreriaActual = "Base_Offline";
+    public string libreriaActual = "FishNet_4.7.2R";
     public int latenciaSimuladaMs = 0;
     public float packetLossSimulado = 0f;
 
@@ -37,47 +37,35 @@ public class CSVMetricsLogger : MonoBehaviour
         filePath = Path.Combine(Application.dataPath, $"Metricas_{libreriaActual}_{timestamp}.csv");
         writer = new StreamWriter(filePath, false);
 
-
-        string header = "Timestamp,Libreria,Tick,Latencia_ms,PacketLoss,ClientID,Host_X,Host_Y,Host_Z,Client_X,Client_Y,Client_Z,Distancia_Desincronizacion,Client_Hit_Registrado,Host_Hit_Registrado";
+        string header = "Timestamp_GameTime,Libreria,Latencia_ms,PacketLoss,ClientID,Min_Dist,Max_Dist,Media_Dist,Mediana_Dist,Total_Muestras";
         writer.WriteLine(header);
         writer.Flush();
 
-        Debug.Log($"<color=cyan>[CSVLogger]</color> Archivo de métricas creado (Modo 4 Jugadores) en: {filePath}");
+        Debug.Log($"<color=cyan>[CSVLogger]</color> Archivo de métricas creado en: {filePath}");
     }
 
     /// <summary>
-    /// Registra la diferencia de posición. Ahora requiere saber qué cliente estamos evaluando.
+    /// Guarda los bloques estadísticos de desincronización
     /// </summary>
-    public void LogDesincronizacionMovimiento(int tickActual, string clientID, Vector3 posHost, Vector3 posClient)
+    public void LogEstadisticasDesincronizacion(string clientID, float min, float max, float media, float mediana, int totalMuestras)
     {
-        float distancia = Vector3.Distance(posHost, posClient);
-
-        string hostX = posHost.x.ToString("F3", CultureInfo.InvariantCulture);
-        string hostY = posHost.y.ToString("F3", CultureInfo.InvariantCulture);
-        string hostZ = posHost.z.ToString("F3", CultureInfo.InvariantCulture);
-
-        string clientX = posClient.x.ToString("F3", CultureInfo.InvariantCulture);
-        string clientY = posClient.y.ToString("F3", CultureInfo.InvariantCulture);
-        string clientZ = posClient.z.ToString("F3", CultureInfo.InvariantCulture);
-
-        string dist = distancia.ToString("F3", CultureInfo.InvariantCulture);
         string time = Time.time.ToString("F3", CultureInfo.InvariantCulture);
 
-       
-        string linea = $"{time},{libreriaActual},{tickActual},{latenciaSimuladaMs},{packetLossSimulado},{clientID},{hostX},{hostY},{hostZ},{clientX},{clientY},{clientZ},{dist},,";
+        string sMin = min.ToString("F4", CultureInfo.InvariantCulture);
+        string sMax = max.ToString("F4", CultureInfo.InvariantCulture);
+        string sMedia = media.ToString("F4", CultureInfo.InvariantCulture);
+        string sMediana = mediana.ToString("F4", CultureInfo.InvariantCulture);
+
+        string linea = $"{time},{libreriaActual},{latenciaSimuladaMs},{packetLossSimulado},{clientID},{sMin},{sMax},{sMedia},{sMediana},{totalMuestras}";
+
         EscribirLinea(linea);
     }
 
-    /// <summary>
-    /// Registra los disparos, indicando qué cliente apretó el gatillo.
-    /// </summary>
-    public void LogHit(int tickActual, string shooterClientID, bool clienteAcerto, bool hostValido)
+    // Para la prueba de la tecla P que tienes en PlayerMovement
+    public void LogDesincronizacionMovimiento(int tick, string player, Vector3 pos1, Vector3 pos2)
     {
-        string time = Time.time.ToString("F3", CultureInfo.InvariantCulture);
-
-        
-        string linea = $"{time},{libreriaActual},{tickActual},{latenciaSimuladaMs},{packetLossSimulado},{shooterClientID},,,,,,,,{(clienteAcerto ? 1 : 0)},{(hostValido ? 1 : 0)}";
-        EscribirLinea(linea);
+        Debug.Log($"<color=yellow>[Prueba Manual CSV]</color> Tick: {tick} - {player} | P1: {pos1} - P2: {pos2}");
+        // Aquí podrías guardar el dato bruto si en un futuro te hace falta
     }
 
     private void EscribirLinea(string linea)
@@ -85,6 +73,7 @@ public class CSVMetricsLogger : MonoBehaviour
         if (writer != null)
         {
             writer.WriteLine(linea);
+            writer.Flush(); // Flush inmediato por seguridad
         }
     }
 

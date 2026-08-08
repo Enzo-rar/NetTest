@@ -195,6 +195,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7241143497963102455}
   - component: {fileID: 3587599201869506691}
+  - component: {fileID: 3946158523273769959}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -234,6 +235,21 @@ MonoBehaviour:
   horasTotales: 24
   prefijoArchivos: Movimiento_
   cantidadArchivos: 10
+--- !u!114 &3946158523273769959
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2373195274315849602}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8a6a39c46bf52104ba8efe3100bce3f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: FishNet.Runtime::FishNet.Object.EmptyNetworkBehaviour
+  _componentIndexCache: 0
+  _addedNetworkObject: {fileID: 0}
+  _networkObjectCache: {fileID: 0}
 --- !u!1 &4117669723901032552
 GameObject:
   m_ObjectHideFlags: 0
@@ -310,6 +326,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fd953b18bd8ea0c47a540f850a893383, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMovement
+  _componentIndexCache: 255
+  _addedNetworkObject: {fileID: 0}
+  _networkObjectCache: {fileID: 0}
   walkSpeed: 7
   sprintSpeed: 10
   maxWalkSpeed: 10
