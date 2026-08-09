@@ -44,7 +44,8 @@ public class CommandReader : MonoBehaviour
                 else if (modeArg == "server") currentMode = StartupMode.DedicatedServer;
             }
 
-            else if (args[i] == "-ip" && i + 1 < args.Length)
+            // Cambiamos "-ip" por "-address" para que NGO no se confunda con "-p"
+            else if (args[i] == "-address" && i + 1 < args.Length)
             {
                 targetIP = args[i + 1];
             }

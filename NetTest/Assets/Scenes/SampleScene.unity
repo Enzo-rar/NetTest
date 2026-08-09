@@ -3015,7 +3015,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DesyncAnalyzer
   intervaloMuestreo: 0.1
-  intervaloAgrupacionMinutos: 10
+  intervaloAgrupacionMinutos: 5
   clientID: Client_1
 --- !u!114 &1629828879
 MonoBehaviour:
@@ -6409,7 +6409,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CommandReader
   currentMode: 0
-  targetIP: 18.231.36.49
+  targetIP: 18.231.94.157
 --- !u!1 &2049370918
 GameObject:
   m_ObjectHideFlags: 0
