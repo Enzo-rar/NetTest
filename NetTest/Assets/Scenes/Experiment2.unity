@@ -142,6 +142,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TiradorAutomatico
   puntoDeDisparo: {fileID: 934419930}
+  cadenciaDeDisparo: 0.5
 --- !u!1 &934419929
 GameObject:
   m_ObjectHideFlags: 0
@@ -300,6 +301,24 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!1 &2060398750 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4689131667410651072, guid: 36600ef1e65226d47841caabeef2c9d6, type: 3}
+  m_PrefabInstance: {fileID: 1316722823440770212}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2060398755
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2060398750}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca70f2496c9985047a192468ae677eb3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DianaOscilante
+  velocidad: 2
 --- !u!1 &2121752879
 GameObject:
   m_ObjectHideFlags: 0
@@ -492,7 +511,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4689131667410651072, guid: 36600ef1e65226d47841caabeef2c9d6, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2060398755}
   m_SourcePrefab: {fileID: 100100000, guid: 36600ef1e65226d47841caabeef2c9d6, type: 3}
 --- !u!1001 &1397629229938449012
 PrefabInstance:
