@@ -18,7 +18,7 @@ public class TiradorNetworked : NetworkBehaviour
         if (!HasInputAuthority)
         {
             if (Runner.Tick % 120 == 0)
-                Debug.Log("[Tirador] No tengo InputAuthority. No puedo enviar comandos de disparo.");
+               // Debug.Log("[Tirador] No tengo InputAuthority. No puedo enviar comandos de disparo.");
             return;
         }
 
@@ -33,16 +33,11 @@ public class TiradorNetworked : NetworkBehaviour
                 // Verificamos si detectamos la Hitbox
                 if (hit.collider.GetComponent<Hitbox>() != null)
                 {
-                    Debug.Log($"[Tirador] ¡Diana detectada en tick {Runner.Tick}! Enviando RPC al servidor...");
+                    
                     Rpc_RegistrarDisparo(Runner.Tick, hit.transform.position);
                     tiempoUltimoDisparo = Runner.SimulationTime;
                 }
-                else
-                {
-                    // Traza por si el rayo choca con otra cosa (como el suelo o el collider base)
-                    if (Runner.Tick % 60 == 0)
-                        Debug.Log($"[Tirador] Rayo chocó contra: {hit.collider.name}, pero no tiene componente Hitbox.");
-                }
+                
             }
         }
     }

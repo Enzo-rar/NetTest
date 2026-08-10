@@ -4,7 +4,7 @@ using UnityEngine;
 public class DianaOscilanteNetworked : NetworkBehaviour
 {
     public float velocidad = 2f;
-    private float amplitud = 15f;
+    private float amplitud = 20f;
     private Vector3 posicionInicial;
 
     public override void Spawned()
