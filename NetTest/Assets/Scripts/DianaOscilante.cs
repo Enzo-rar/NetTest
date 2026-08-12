@@ -6,7 +6,7 @@ public class DianaOscilante : MonoBehaviour
     public float velocidad = 2f;
 
     [Tooltip("Amplitud desde el centro. 15 significa un recorrido total de 30 unidades.")]
-    private float amplitud = 15f;
+    private float amplitud = 20f;
 
     private Vector3 posicionInicial;
 
