@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 1499432287063127089}
   - component: {fileID: 7208700864187319448}
   - component: {fileID: 848518992528292107}
+  - component: {fileID: 4387853808455206977}
   m_Layer: 0
   m_Name: Diana
   m_TagString: Diana
@@ -155,6 +156,7 @@ MonoBehaviour:
   NetworkBehaviours:
   - {fileID: 2995879260634283461}
   - {fileID: 1499432287063127089}
+  - {fileID: 848518992528292107}
   InitializedParentNetworkBehaviour: {fileID: 0}
   InitializedNestedNetworkObjects: []
   RuntimeParentNetworkBehaviour: {fileID: 0}
@@ -165,7 +167,7 @@ MonoBehaviour:
   _initializeOrder: 0
   _preventDespawnOnDisconnect: 0
   _defaultDespawnType: 0
-  _initializedTimestamp: -8584152012858282883
+  _initializedTimestamp: -8584151102353707118
   _localLevelOfDetailCalculationType: 0
   _useLevelOfDetail: 0
   _useRootLevelOfDetail: 1
@@ -266,11 +268,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 01a271dd97d875347b0cea860df29a9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: FishNet.Runtime::FishNet.Component.ColliderRollback.ColliderRollback
+  _componentIndexCache: 2
+  _addedNetworkObject: {fileID: 2066417001989638341}
+  _networkObjectCache: {fileID: 2066417001989638341}
+  _boundingBox: 1
+  _physicsType: 1
+  _boundingBoxSize: {x: 50.03, y: 50, z: 50}
+  _colliderParents:
+  - {fileID: 4689131667410651072}
+--- !u!114 &4387853808455206977
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4689131667410651072}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3195f67b9ce7a344b808b84b85aad5e7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MonitorDeRed
   _componentIndexCache: 255
   _addedNetworkObject: {fileID: 2066417001989638341}
   _networkObjectCache: {fileID: 0}
-  _boundingBox: 1
-  _physicsType: 1
-  _boundingBoxSize: {x: 4, y: 4, z: 4}
-  _colliderParents:
-  - {fileID: 4689131667410651072}
