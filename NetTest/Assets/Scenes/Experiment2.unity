@@ -387,7 +387,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca70f2496c9985047a192468ae677eb3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::DianaOscilante
+  ShowTopMostFoldoutHeaderGroup: 1
   velocidad: 2
+  amplitud: 20
 --- !u!114 &2060398756
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -655,10 +657,10 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 4689131667410651072, guid: 36600ef1e65226d47841caabeef2c9d6, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2060398755}
+      addedObject: {fileID: 2060398756}
     - targetCorrespondingSourceObject: {fileID: 4689131667410651072, guid: 36600ef1e65226d47841caabeef2c9d6, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2060398756}
+      addedObject: {fileID: 2060398755}
     - targetCorrespondingSourceObject: {fileID: 4689131667410651072, guid: 36600ef1e65226d47841caabeef2c9d6, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2060398757}

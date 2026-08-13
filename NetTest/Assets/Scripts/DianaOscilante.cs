@@ -1,12 +1,14 @@
 using UnityEngine;
+using Unity.Netcode;
 
-public class DianaOscilante : MonoBehaviour
+// Ahora hereda de NetworkBehaviour
+public class DianaOscilante : NetworkBehaviour
 {
     [Tooltip("Velocidad de oscilación de la diana.")]
     public float velocidad = 2f;
 
-    [Tooltip("Amplitud desde el centro. 15 significa un recorrido total de 30 unidades.")]
-    private float amplitud = 20f;
+    [Tooltip("Amplitud desde el centro.")]
+    public float amplitud = 20f; // Ajustado a tus pruebas
 
     private Vector3 posicionInicial;
 
@@ -17,8 +19,12 @@ public class DianaOscilante : MonoBehaviour
 
     void Update()
     {
-        // Movimiento oscilatorio usando la función Seno para simular el trayecto de -15 a 15 en X
-        float desplazamiento = Mathf.Sin(Time.time * velocidad) * amplitud;
-        transform.position = posicionInicial + new Vector3(desplazamiento, 0, 0);
+        // Solo el Servidor (AWS) tiene derecho a mover la diana.
+        // El cliente solo verá el reflejo del movimiento gracias al NetworkTransform.
+        if (IsServer)
+        {
+            float desplazamiento = Mathf.Sin(Time.time * velocidad) * amplitud;
+            transform.position = posicionInicial + new Vector3(desplazamiento, 0, 0);
+        }
     }
 }
