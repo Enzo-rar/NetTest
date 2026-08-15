@@ -1,41 +1,67 @@
-using System.Collections;
+using Fusion;
 using UnityEngine;
 
-public class LanzadorEsferas : MonoBehaviour
+public class LanzadorEsferas : NetworkBehaviour
 {
     [Header("Configuración del Lanzamiento")]
-    public GameObject prefabEsfera;
+    public NetworkPrefabRef prefabEsfera;
     public float fuerzaLanzamiento = 25f;
     public float intervaloEntreLanzamientos = 5f;
 
-    void Start()
+    [Networked] private TickTimer temporizadorLanzamiento { get; set; }
+
+    public override void Spawned()
     {
-        // Inicia el bucle de lanzamientos repetidos
-        StartCoroutine(RutinaLanzamiento());
+        Debug.Log($"[Lanzador] Spawned() ejecutado. ¿Tengo autoridad (Host)?: {HasStateAuthority}");
+
+        if (HasStateAuthority)
+        {
+            Debug.Log("[Lanzador] Iniciando temporizador de lanzamientos...");
+            temporizadorLanzamiento = TickTimer.CreateFromSeconds(Runner, intervaloEntreLanzamientos);
+        }
     }
 
-    IEnumerator RutinaLanzamiento()
+    public override void FixedUpdateNetwork()
     {
-        while (true)
+        if (!HasStateAuthority) return;
+
+        // Comprobamos si el temporizador ha expirado
+        if (temporizadorLanzamiento.Expired(Runner))
         {
+            //Debug.Log($"[Lanzador] Temporizador expirado en el Tick {Runner.Tick}. ¡Lanzando esfera!");
             LanzarEsfera();
-            yield return new WaitForSeconds(intervaloEntreLanzamientos);
+
+            // Reiniciamos
+            temporizadorLanzamiento = TickTimer.CreateFromSeconds(Runner, intervaloEntreLanzamientos);
         }
     }
 
     void LanzarEsfera()
     {
-        // Instanciamos la esfera en la posición y rotación del lanzador (a 45 grados)
-        GameObject nuevaEsfera = Instantiate(prefabEsfera, transform.position, transform.rotation);
-
-        Rigidbody rb = nuevaEsfera.GetComponent<Rigidbody>();
-        if (rb != null)
+        if (prefabEsfera == NetworkPrefabRef.Empty)
         {
-            // Aplicamos la fuerza hacia adelante respecto a la rotación del lanzador (45º)
-            rb.AddForce(transform.forward * fuerzaLanzamiento, ForceMode.Impulse);
+            Debug.LogError("[Lanzador] ERROR: El prefabEsfera no está asignado en el Inspector.");
+            return;
         }
 
-        // Destruir la esfera después de un tiempo para no saturar la memoria
-        Destroy(nuevaEsfera, intervaloEntreLanzamientos - 0.5f);
+        NetworkObject nuevaEsfera = Runner.Spawn(prefabEsfera, transform.position, transform.rotation, Object.InputAuthority);
+
+        if (nuevaEsfera != null)
+        {
+            //Debug.Log($"[Lanzador] Esfera instanciada correctamente con ID {nuevaEsfera.Id}");
+            Rigidbody rb = nuevaEsfera.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.AddForce(transform.forward * fuerzaLanzamiento, ForceMode.Impulse);
+            }
+            else
+            {
+                Debug.LogWarning("[Lanzador] La esfera no tiene Rigidbody clásico. (Si usas NetworkRigidbody3D, asegúrate de que el GameObject también tenga el Rigidbody de Unity).");
+            }
+
+            //Runner.Despawn(nuevaEsfera);
+            // OJO: Runner.Despawn la destruye INMEDIATAMENTE.
+            // Para que la esfera viaje y rebote antes de destruirse, ¡debemos quitar esta línea o retrasarla!
+        }
     }
 }
