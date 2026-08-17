@@ -1,39 +1,65 @@
+using FishNet.Object;
 using UnityEngine;
+using System.Collections;
 
-public class AnalizadorRebotes : MonoBehaviour
+public class AnalizadorRebotes : NetworkBehaviour
 {
     private int contadorRebotes = 0;
     private const int MAX_REBOTES_MEDICION = 5;
-
-    // Aquí almacenarás las referencias de red en tus ramas (ej. NetworkObject)
-    // public bool isServer; // Ejemplo genérico
+    private float[] discrepancias = new float[MAX_REBOTES_MEDICION];
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (contadorRebotes >= MAX_REBOTES_MEDICION)
-            return; // Solo nos interesan los primeros 5 rebotes
+        // SOLO el Servidor gestiona las colisiones reales
+        if (!base.IsServerInitialized) return;
+
+        if (contadorRebotes >= MAX_REBOTES_MEDICION) return;
+
+        // El servidor envía SU punto de impacto a los clientes mediante un RPC
+        ObserversRpc_IniciarRastreoRebote(contadorRebotes, collision.contacts[0].point);
 
         contadorRebotes++;
-
-        RegistrarDiscrepanciaEspacial(collision.contacts[0].point, collision.gameObject.name);
     }
 
-    private void RegistrarDiscrepanciaEspacial(Vector3 puntoImpactoLocal, string objetoGolpeado)
+    [ObserversRpc]
+    public void ObserversRpc_IniciarRastreoRebote(int numRebote, Vector3 posicionImpactoServer)
     {
-        // BASE PARA LA TOMA DE DATOS (A rellenar en cada rama de red)
+        // El Host (AWS en tu caso) no aporta datos visuales al CSV, solo el cliente remoto
+        if (base.IsServerInitialized) return;
 
-        // 1. Obtener posición autoritativa (Servidor)
-        // Vector3 posicionServidor = ObtenerPosicionAutoritativaDelServidor(); 
+        StartCoroutine(RastrearTrayectoriaVisual(numRebote, posicionImpactoServer));
+    }
 
-        // 2. Obtener posición representada (Cliente remoto)
-        Vector3 posicionCliente = transform.position;
+    private IEnumerator RastrearTrayectoriaVisual(int numRebote, Vector3 posicionImpactoServer)
+    {
+        float distanciaMinima = float.MaxValue;
+        float tiempoRastreo = 0.5f;
+        float timer = 0f;
 
-        // 3. Calcular la diferencia espacial
-        // float discrepancia = Vector3.Distance(posicionServidor, posicionCliente);
+        while (timer < tiempoRastreo)
+        {
+            // En FishNet con NetworkTransform, transform.position ya representa la posición visual interpolada
+            Vector3 posicionVisual = transform.position;
+            float distanciaActual = Vector3.Distance(posicionImpactoServer, posicionVisual);
 
-        // LOG temporal para la rama base
-        Debug.Log($"[Rebote {contadorRebotes}] Impacto en {objetoGolpeado}. " +
-                  $"Posición Cliente: {posicionCliente}. " +
-                  $"(Añadir lógica de red para calcular la divergencia).");
+            if (distanciaActual < distanciaMinima)
+            {
+                distanciaMinima = distanciaActual;
+            }
+
+            timer += Time.deltaTime;
+            yield return null;
+        }
+
+        discrepancias[numRebote] = distanciaMinima;
+
+        if (numRebote == MAX_REBOTES_MEDICION - 1)
+        {
+            if (VolcadorCSV.Instancia != null)
+            {
+                // Usamos el Tick de FishNet
+                VolcadorCSV.Instancia.RegistrarLanzamiento(base.TimeManager.Tick, discrepancias);
+            }
+        }
     }
 }
