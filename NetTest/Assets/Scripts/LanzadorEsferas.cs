@@ -1,41 +1,52 @@
-using System.Collections;
+using Unity.Netcode;
 using UnityEngine;
 
-public class LanzadorEsferas : MonoBehaviour
+public class LanzadorEsferasNGO : NetworkBehaviour
 {
     [Header("Configuración del Lanzamiento")]
     public GameObject prefabEsfera;
     public float fuerzaLanzamiento = 25f;
     public float intervaloEntreLanzamientos = 5f;
 
-    void Start()
+    private float timer = 0f;
+
+    public override void OnNetworkSpawn()
     {
-        // Inicia el bucle de lanzamientos repetidos
-        StartCoroutine(RutinaLanzamiento());
+        if (IsServer)
+        {
+            Debug.Log("[Lanzador] Iniciando temporizador de lanzamientos en NGO...");
+            timer = intervaloEntreLanzamientos;
+        }
     }
 
-    IEnumerator RutinaLanzamiento()
+    private void FixedUpdate()
     {
-        while (true)
+        // Solo el servidor tiene autoridad para spawnear
+        if (!IsSpawned || !IsServer) return;
+
+        timer -= Time.fixedDeltaTime;
+        if (timer <= 0)
         {
             LanzarEsfera();
-            yield return new WaitForSeconds(intervaloEntreLanzamientos);
+            timer = intervaloEntreLanzamientos;
         }
     }
 
     void LanzarEsfera()
     {
-        // Instanciamos la esfera en la posición y rotación del lanzador (a 45 grados)
+        if (prefabEsfera == null) return;
+
+        // Instanciamos el objeto localmente en el server
         GameObject nuevaEsfera = Instantiate(prefabEsfera, transform.position, transform.rotation);
+
+        // Lo spawneamos por red
+        NetworkObject netObj = nuevaEsfera.GetComponent<NetworkObject>();
+        netObj.Spawn(true); // true = destroyWithScene
 
         Rigidbody rb = nuevaEsfera.GetComponent<Rigidbody>();
         if (rb != null)
         {
-            // Aplicamos la fuerza hacia adelante respecto a la rotación del lanzador (45º)
             rb.AddForce(transform.forward * fuerzaLanzamiento, ForceMode.Impulse);
         }
-
-        // Destruir la esfera después de un tiempo para no saturar la memoria
-        Destroy(nuevaEsfera, intervaloEntreLanzamientos - 0.5f);
     }
 }
