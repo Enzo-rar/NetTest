@@ -18,7 +18,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3587599201869506691, guid: f8d1446d5ec134e49a1ddd1f04f93179, type: 3}
       propertyPath: horasTotales
-      value: 1
+      value: 0.25
       objectReference: {fileID: 0}
     - target: {fileID: 3946158523273769959, guid: f8d1446d5ec134e49a1ddd1f04f93179, type: 3}
       propertyPath: _addedNetworkObject
@@ -90,6 +90,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2373195274315849602, guid: f8d1446d5ec134e49a1ddd1f04f93179, type: 3}
       insertIndex: -1
       addedObject: {fileID: -6450916281560991971}
+    - targetCorrespondingSourceObject: {fileID: 2373195274315849602, guid: f8d1446d5ec134e49a1ddd1f04f93179, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4600124109402475656}
     - targetCorrespondingSourceObject: {fileID: 4117669723901032552, guid: f8d1446d5ec134e49a1ddd1f04f93179, type: 3}
       insertIndex: -1
       addedObject: {fileID: 9023337085108127954}
@@ -309,6 +312,22 @@ MonoBehaviour:
   _componentIndexCache: 1
   _addedNetworkObject: {fileID: 6972323307714438676}
   _networkObjectCache: {fileID: 6972323307714438676}
-  minutosPorIntervalo: 5
+  minutosPorIntervalo: 1.25
   frecuenciaMuestreo: 0.1
   clientID: Client_1
+--- !u!114 &4600124109402475656
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1734249002886572929}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c44830e7fae87f249a7d2376cad1db1b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::FishNetNetworkMetricsLogger
+  _componentIndexCache: 255
+  _addedNetworkObject: {fileID: 6972323307714438676}
+  _networkObjectCache: {fileID: 0}
+  intervaloRegistro: 1
