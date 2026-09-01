@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using Fusion;
 public class Weapon : MonoBehaviour
 {
     public enum WeaponType { Hitscan, Projectile }
@@ -51,7 +51,7 @@ public class Weapon : MonoBehaviour
     /// <summary>
     /// Llamado desde el script que controla al jugador cada frame que tenga el arma equipada.
     /// </summary>
-    public void HandleWeaponInputs(PlayerInputData input, Transform cameraPoint)
+    public void HandleWeaponInputs(NetworkInputData input, Transform cameraPoint)
     {
         // 1. Lógica de disparo principal
         bool triesToFire = input.Fire;
@@ -67,11 +67,6 @@ public class Weapon : MonoBehaviour
 
         wasFiring = triesToFire;
 
-        // 2. Lógica de disparo secundario
-        if (input.AltFire && altFireMethod != null)
-        {
-            altFireMethod.ExecuteAltFire(cameraPoint);
-        }
     }
 
     private void Shoot(Transform cameraPoint)

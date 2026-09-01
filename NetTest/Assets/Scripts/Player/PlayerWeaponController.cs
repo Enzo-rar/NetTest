@@ -1,27 +1,39 @@
 using UnityEngine;
+using Fusion;
 
-public class PlayerWeaponController : MonoBehaviour
+public class PlayerWeaponController : NetworkBehaviour
 {
     [Header("Arma Actual")]
     public Weapon currentWeapon;
-
-    // Necesitamos la cámara para saber hacia dónde apunta exactamente el centro de la pantalla
     public Transform cameraTransform;
 
-    private IPlayerInputProvider inputProvider;
+    [Header("Interacción")]
+    public float interactDistance = 3f;
 
-    void Start()
+    public override void FixedUpdateNetwork()
     {
-        inputProvider = GetComponentInParent<IPlayerInputProvider>();
-    }
+        if (GetInput(out NetworkInputData input))
+        {
+            // 1. Detectar si pulsamos la tecla 'E'
+            if (input.Interact)
+            {
+                // Disparamos un Raycast desde la cámara hacia adelante
+                if (Runner.GetPhysicsScene().Raycast(cameraTransform.position, cameraTransform.forward, out RaycastHit hit, interactDistance))
+                {
+                    // Comprobamos si el objeto impactado tiene la interfaz IInteractable
+                    IInteractable interactable = hit.collider.GetComponent<IInteractable>();
+                    if (interactable != null)
+                    {
+                        interactable.Interact(this);
+                    }
+                }
+            }
 
-    void Update()
-    {
-        if (inputProvider == null || currentWeapon == null) return;
-
-        PlayerInputData input = inputProvider.GetInput();
-
-        // Le pasamos la información al arma para que ella decida si disparar o no
-        currentWeapon.HandleWeaponInputs(input, cameraTransform);
+            // 2. Lógica del arma actual (si tenemos una)
+            if (currentWeapon != null)
+            {
+                currentWeapon.HandleWeaponInputs(input, cameraTransform);
+            }
+        }
     }
 }
